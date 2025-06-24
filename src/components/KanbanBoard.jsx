@@ -1,27 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Card, CardContent } from "@/components/ui/card";
 
-const initialData = {
+const STORAGE_KEY = "kanban-tasks";
+
+const defaultData = {
   todo: [{ id: uuidv4(), text: "Design UI" }],
   progress: [{ id: uuidv4(), text: "Implement Kanban" }],
   done: [{ id: uuidv4(), text: "Initial Planning" }],
 };
 
+ // Load tasks from localStorage
+ const getInitialTasks = () => {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) {
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed.todo && parsed.progress && parsed.done) {
+        return parsed;
+      }
+    } catch (err) {
+      // ignore
+    }
+  }
+  return {
+    todo: [{ id: uuidv4(), text: "Design UI" }],
+    progress: [{ id: uuidv4(), text: "Implement Kanban" }],
+    done: [{ id: uuidv4(), text: "Initial Planning" }],
+  };
+};
+
 export default function KanbanBoard() {
-  const [tasks, setTasks] = useState(initialData);
+ const [tasks, setTasks] = useState(getInitialTasks);
   const [newTask, setNewTask] = useState({ todo: "", progress: "", done: "" });
   const [editingTask, setEditingTask] = useState({ id: null, text: "", col: "" });
+
+ 
+
+  // Save tasks to localStorage whenever tasks change
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    console.log("Saved tasks to localStorage:", tasks);
+  }, [tasks]);
 
   const onDragEnd = (result) => {
     const { source, destination } = result;
     if (!destination) return;
-    if (source.droppableId === destination.droppableId && source.index === destination.index) return;
 
     setTasks((prev) => {
       const sourceList = Array.from(prev[source.droppableId]);
-      const destList = source.droppableId === destination.droppableId ? sourceList : Array.from(prev[destination.droppableId]);
+      const destList =
+        source.droppableId === destination.droppableId
+          ? sourceList
+          : Array.from(prev[destination.droppableId]);
+
       const [movedTask] = sourceList.splice(source.index, 1);
       destList.splice(destination.index, 0, movedTask);
 
