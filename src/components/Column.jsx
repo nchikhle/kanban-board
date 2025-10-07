@@ -1,5 +1,5 @@
 import { Droppable, Draggable } from "@hello-pangea/dnd";
-import { CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/Card";
 import TaskCard from "./TaskCard";
 import TaskInput from "./TaskInput";
 
